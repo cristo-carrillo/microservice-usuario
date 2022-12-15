@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,58 +29,76 @@ public class UsuarioServicio {
     @Autowired
     private PerifericoFeignCliente perifericoFeignCliente;
 
-    public List<Rol> getRoles(int usuarioId){
-        List<Rol> roles = restTemplate.getForObject("http://localhost:8002/rol/usuario/" + usuarioId, List.class);
-        return roles;
+    public List<Rol> getRoles(int usuarioId) {
+        try {
+            return restTemplate.getForObject("http://localhost:8002/rol/usuario/" + usuarioId, List.class);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
-    public List<Periferico> getPerifericos(int usuarioId){
-        List<Periferico> perifericos = restTemplate.getForObject("http://localhost:8003/periferico/usuario/" + usuarioId, List.class);
-        return perifericos;
+    public List<Periferico> getPerifericos(int usuarioId) {
+        try {
+            return restTemplate.getForObject("http://localhost:8003/periferico/usuario/" + usuarioId, List.class);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
-    public Rol saveRol(int usuarioId, Rol rol){
-        rol.setUsuarioId(usuarioId);
-        Rol nuevoRol = rolFeignCliente.save(rol);
-        return nuevoRol;
+    public Rol saveRol(int usuarioId, Rol rol) {
+        try {
+            rol.setUsuarioId(usuarioId);
+            return rolFeignCliente.save(rol);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public Periferico savePeriferico(int usuarioId, Periferico periferico){
-        periferico.setUsuarioId(usuarioId);
-        Periferico nuevoPeriferico = perifericoFeignCliente.save(periferico);
-        return nuevoPeriferico;
+    public Periferico savePeriferico(int usuarioId, Periferico periferico) {
+        try {
+            periferico.setUsuarioId(usuarioId);
+            return perifericoFeignCliente.save(periferico);
+        }catch (Exception e){
+            return  null;
+        }
     }
 
-    public Map<String, Object> getUsuarioAndArea(int usuarioId){
-        Map<String,Object> response = new HashMap<>();
+    public Map<String, Object> getUsuarioAndArea(int usuarioId) {
+        Map<String, Object> response = new HashMap<>();
         Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
 
-        if (usuario == null){
-            response.put("msj","El usuario no se encuentra registrado");
+        if (usuario == null) {
+            response.put("msj", "El usuario no se encuentra registrado");
             return response;
         }
-        response.put("Usuario",usuario);
-        List<Rol> roles = rolFeignCliente.getRoles(usuarioId);
+        response.put("Usuario", usuario);
+        try {
+            List<Rol> roles = rolFeignCliente.getRoles(usuarioId);
+            response.put("Roles", roles == null ? "El usuario no tiene rol" : roles);
+        } catch (Exception e) {
+            response.put("Roles", "El microservicio Roles no esta disponible");
+        }
 
-        response.put("Roles",roles==null ? "El usuario no tiene rol" : roles);
+        try {
+            List<Periferico> perifericos = perifericoFeignCliente.getPerifericos(usuarioId);
+            response.put("Perifericos", perifericos == null ? "El usuario no tiene perifericos" : perifericos);
+        } catch (Exception e) {
+            response.put("Perifericos", "El microservicio Perifericos no se encuentra disponible");
+        }
 
-        List<Periferico> perifericos = perifericoFeignCliente.getPerifericos(usuarioId);
-
-        response.put("Perifericos",perifericos==null ? "El usuario no tiene perifericos" : perifericos);
 
         return response;
     }
 
-    public List<Usuario> getAll(){
+    public List<Usuario> getAll() {
         return usuarioRepository.findAll();
     }
 
-    public   Usuario getUsuarioById(int id){
+    public Usuario getUsuarioById(int id) {
         return usuarioRepository.findById(id).orElse(null);
     }
 
-    public Usuario save(Usuario usuario){
-        Usuario nuevoUsuario = usuarioRepository.save(usuario);
-        return nuevoUsuario;
+    public Usuario save(Usuario usuario) {
+        return usuarioRepository.save(usuario);
     }
 }

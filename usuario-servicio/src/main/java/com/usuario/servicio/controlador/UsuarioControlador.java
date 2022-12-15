@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/usuario")
 public class UsuarioControlador {
@@ -39,7 +40,7 @@ public class UsuarioControlador {
     @PostMapping
     public ResponseEntity<Usuario> guardarUsuario(@RequestBody Usuario usuario){
         Usuario nuevoUsuario = usuarioServicio.save(usuario);
-        return ResponseEntity.ok(nuevoUsuario);
+        return nuevoUsuario == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(nuevoUsuario);
     }
 
     @GetMapping("/roles/{usuarioId}")
@@ -50,7 +51,7 @@ public class UsuarioControlador {
             return ResponseEntity.notFound().build();
         }
         List<Rol> roles = usuarioServicio.getRoles(id);
-        return ResponseEntity.ok(roles);
+        return roles.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(roles);
     }
 
     @GetMapping("/perifericos/{usuarioId}")
@@ -61,14 +62,14 @@ public class UsuarioControlador {
             return ResponseEntity.notFound().build();
         }
         List<Periferico> perifericos = usuarioServicio.getPerifericos(id);
-        return ResponseEntity.ok(perifericos);
+        return perifericos.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(perifericos);
     }
 
     @PostMapping("/rol/{usuarioId}")
     public ResponseEntity<Rol> guardarRol(@PathVariable("usuarioId") int usuarioId, @RequestBody Rol rol){
 
         Rol nuevoRol = usuarioServicio.saveRol(usuarioId, rol);
-        return ResponseEntity.ok(nuevoRol);
+        return nuevoRol == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(nuevoRol);
 
     }
 
@@ -76,7 +77,7 @@ public class UsuarioControlador {
     public ResponseEntity<Periferico> guardarPeriferico(@PathVariable("usuarioId") int usuarioId, @RequestBody Periferico periferico){
 
         Periferico nuevoPeriferico = usuarioServicio.savePeriferico(usuarioId, periferico);
-        return ResponseEntity.ok(nuevoPeriferico);
+        return  nuevoPeriferico == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(nuevoPeriferico);
 
     }
 
